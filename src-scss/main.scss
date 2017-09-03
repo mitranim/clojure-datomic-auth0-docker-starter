@@ -1,0 +1,276 @@
+@import './reset';
+
+$color-link: darkblue;
+$color-red: red;
+$color-green: green;
+$color-gray: gray;
+$color-light: rgb(245, 245, 245);
+$color-black-20: rgba(black, 0.20);
+$color-primary: teal;
+
+/**
+ * Global
+ */
+
+html {
+  font-family: 'Helvetica Neue', Roboto, 'Segoe UI', Verdana, sans-serif;
+  font-size: 16px;
+}
+
+body {
+  overflow-x: auto;
+  overflow-y: scroll;
+}
+
+svg.feather {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+}
+
+/**
+ * Misc
+ */
+
+.page-container {
+  min-width: 320px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.fancy-typography {
+  line-height: 1.4;
+
+  h1 {font-size: 1.6rem}
+  h2 {font-size: 1.4rem;}
+  h3 {font-size: 1.2rem;}
+
+  h1, h2, h3, h4, h5, h6 {
+    &:not(:first-child) {
+      margin-top: 2rem;
+    }
+    margin-bottom: 1rem;
+  }
+
+  p {
+    &:not(:first-child) {
+      margin-top: 1rem;
+    }
+    margin-bottom: 1rem;
+  }
+
+  hr {
+    border-top: 1px solid $color-light;
+    @extend .margin-1-v;
+  }
+}
+
+.gaps-0x25-v > :not(:last-child) {margin-bottom: 0.25rem}
+.gaps-0x5-v  > :not(:last-child) {margin-bottom: 0.5rem}
+.gaps-1-v    > :not(:last-child) {margin-bottom: 1rem}
+.gaps-2-v    > :not(:last-child) {margin-bottom: 2rem}
+
+.gaps-0x25-h > :not(:last-child) {margin-right: 0.25rem}
+.gaps-0x5-h  > :not(:last-child) {margin-right: 0.5rem}
+.gaps-1-h    > :not(:last-child) {margin-right: 1rem}
+.gaps-2-h    > :not(:last-child) {margin-right: 2rem}
+
+.margin-0x25 {margin: 0.25rem}
+.margin-0x5  {margin: 0.5rem}
+.margin-1    {margin: 1rem}
+.margin-2    {margin: 2rem}
+
+.margin-0x25-v {margin-top: 0.25rem; margin-bottom: 0.25rem}
+.margin-0x5-v  {margin-top: 0.5rem;  margin-bottom: 0.5rem}
+.margin-1-v    {margin-top: 1rem;    margin-bottom: 1rem}
+.margin-2-v    {margin-top: 2rem;    margin-bottom: 2rem}
+
+.margin-0x25-h {margin-left: 0.25rem; margin-right: 0.25rem}
+.margin-0x5-h  {margin-left: 0.5rem;  margin-right: 0.5rem}
+.margin-1-h    {margin-left: 1rem;    margin-right: 1rem}
+.margin-2-h    {margin-left: 2rem;    margin-right: 2rem}
+
+.padding-0x25 {padding: 0.25rem}
+.padding-0x5  {padding: 0.5rem}
+.padding-1    {padding: 1rem}
+.padding-2    {padding: 2rem}
+
+.padding-0x25-v {padding-top: 0.25rem; padding-bottom: 0.25rem}
+.padding-0x5-v  {padding-top: 0.5rem;  padding-bottom: 0.5rem}
+.padding-0x75-v {padding-top: 0.75rem; padding-bottom: 0.75rem}
+.padding-1-v    {padding-top: 1rem;    padding-bottom: 1rem}
+.padding-2-v    {padding-top: 2rem;    padding-bottom: 2rem}
+
+.padding-0x25-h {padding-left: 0.25rem; padding-right: 0.25rem}
+.padding-0x5-h  {padding-left: 0.5rem;  padding-right: 0.5rem}
+.padding-0x75-h {padding-left: 0.75rem; padding-right: 0.75rem}
+.padding-1-h    {padding-left: 1rem;    padding-right: 1rem}
+.padding-2-h    {padding-left: 2rem;    padding-right: 2rem}
+
+@mixin flex-layout($flex-direction, $justify-content, $align-items) {
+  display:         flex;
+  flex-direction:  $flex-direction;
+  justify-content: $justify-content;
+  align-items:     $align-items;
+}
+
+.row-start-start     {@include flex-layout(row,    flex-start,    flex-start);}
+.row-start-center    {@include flex-layout(row,    flex-start,    center);}
+.row-start-end       {@include flex-layout(row,    flex-start,    flex-end);}
+.row-start-stretch   {@include flex-layout(row,    flex-start,    stretch);}
+.row-center-start    {@include flex-layout(row,    center,        flex-start);}
+.row-center-center   {@include flex-layout(row,    center,        center);}
+.row-center-end      {@include flex-layout(row,    center,        flex-end);}
+.row-center-stretch  {@include flex-layout(row,    center,        stretch);}
+.row-end-start       {@include flex-layout(row,    flex-end,      flex-start);}
+.row-end-center      {@include flex-layout(row,    flex-end,      center);}
+.row-end-end         {@include flex-layout(row,    flex-end,      flex-end);}
+.row-end-stretch     {@include flex-layout(row,    flex-end,      stretch);}
+.row-around-start    {@include flex-layout(row,    space-around,  flex-start);}
+.row-around-center   {@include flex-layout(row,    space-around,  center);}
+.row-around-end      {@include flex-layout(row,    space-around,  flex-end);}
+.row-around-stretch  {@include flex-layout(row,    space-around,  stretch);}
+.row-between-start   {@include flex-layout(row,    space-between, flex-start);}
+.row-between-center  {@include flex-layout(row,    space-between, center);}
+.row-between-end     {@include flex-layout(row,    space-between, flex-end);}
+.row-between-stretch {@include flex-layout(row,    space-between, stretch);}
+.col-start-start     {@include flex-layout(column, flex-start,    flex-start);}
+.col-start-center    {@include flex-layout(column, flex-start,    center);}
+.col-start-end       {@include flex-layout(column, flex-start,    flex-end);}
+.col-start-stretch   {@include flex-layout(column, flex-start,    stretch);}
+.col-center-start    {@include flex-layout(column, center,        flex-start);}
+.col-center-center   {@include flex-layout(column, center,        center);}
+.col-center-end      {@include flex-layout(column, center,        flex-end);}
+.col-center-stretch  {@include flex-layout(column, center,        stretch);}
+.col-end-start       {@include flex-layout(column, flex-end,      flex-start);}
+.col-end-center      {@include flex-layout(column, flex-end,      center);}
+.col-end-end         {@include flex-layout(column, flex-end,      flex-end);}
+.col-end-stretch     {@include flex-layout(column, flex-end,      stretch);}
+.col-around-start    {@include flex-layout(column, space-around,  flex-start);}
+.col-around-center   {@include flex-layout(column, space-around,  center);}
+.col-around-end      {@include flex-layout(column, space-around,  flex-end);}
+.col-around-stretch  {@include flex-layout(column, space-around,  stretch);}
+.col-between-start   {@include flex-layout(column, space-between, flex-start);}
+.col-between-center  {@include flex-layout(column, space-between, center);}
+.col-between-end     {@include flex-layout(column, space-between, flex-end);}
+.col-between-stretch {@include flex-layout(column, space-between, stretch);}
+
+.btn-text {
+  @extend .row-start-center;
+  @extend .text-ellipsis;
+  @extend .gaps-0x25-h;
+  @extend .padding-1-h;
+  @extend .padding-0x75-v;
+  @extend .transition;
+}
+
+.nav-link {
+  @extend .row-start-center;
+  @extend .text-ellipsis;
+  @extend .gaps-0x25-h;
+  @extend .padding-1;
+  @extend .transition;
+  @extend .busy-bg-transparent;
+}
+
+.fg-gray {
+  color: $color-gray;
+}
+
+.fg-link {
+  color: $color-link;
+}
+
+.fg-primary {
+  color: $color-primary;
+}
+
+.busy-bg-transparent {
+  &:hover, &:active {
+    background-color: $color-light;
+  }
+  @extend .transition;
+}
+
+.busy-bg-light {
+  background-color: $color-light;
+  &:hover, &:active {
+    background-color: darken($color-light, 5%);
+  }
+  @extend .transition;
+}
+
+.busy-bg-primary {
+  background-color: $color-primary;
+  color: white;
+  &:hover, &:active {
+    background-color: lighten($color-primary, 3%);
+  }
+  @extend .transition;
+}
+
+.transition {
+  transition: 0.2s all ease-out;
+}
+
+.text-ellipsis {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  > {@extend .text-ellipsis;}
+}
+
+.text-uppercase {
+  text-transform: uppercase;
+}
+
+.font-small {
+  font-size: 0.75rem;
+}
+
+.font-regular {
+  font-size: 1rem;
+}
+
+.font-large {
+  font-size: 1.25rem;
+}
+
+.pane {
+  @extend .padding-0x5;
+  border: 1px solid $color-black-20;
+  background-color: $color-light;
+}
+
+.pane.--red {
+  border: 1px solid $color-red;
+  background-color: rgba($color-red, 0.1);
+}
+
+.pane.--green {
+  border: 1px solid $color-green;
+  background-color: rgba($color-green, 0.1);
+}
+
+.input-container {
+  @extend .col-start-stretch;
+  @extend .gaps-0x5-v;
+}
+
+.input-label {
+  @extend .fg-primary;
+}
+
+.input {
+  @extend .padding-0x5-v;
+  border-bottom: 1px solid $color-gray;
+  &:focus {
+    border-bottom: 1px solid $color-primary;
+    box-shadow: inset 0 -1px 0 0 $color-primary;
+  }
+  &[disabled] {
+    border-bottom: 1px dashed $color-gray;
+  }
+  @extend .transition;
+}

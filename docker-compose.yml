@@ -1,0 +1,49 @@
+version: '3.2'
+
+volumes:
+  datomic_data: null
+  public: null
+
+services:
+  datomic:
+    build:
+      context: ./
+      dockerfile: Dockerfile-datomic
+      args:
+        DATOMIC_VERSION: $DATOMIC_VERSION
+        DATOMIC_CREDENTIALS: $DATOMIC_CREDENTIALS
+    image: datomic
+    restart: on-failure
+    ports:
+      - 4334-4336
+    volumes:
+      - datomic_data:/opt/datomic/data
+
+  frontend:
+    build:
+      context: ./
+      dockerfile: Dockerfile-frontend
+    restart: on-failure
+    volumes:
+      - public:/opt/frontend/public
+
+  app:
+    depends_on:
+      - datomic
+      - frontend
+    build:
+      context: ./
+      dockerfile: Dockerfile-app
+    environment:
+      DB_URI: $DB_URI
+      AUTH0_DOMAIN: $AUTH0_DOMAIN
+      AUTH0_ISSUER: $AUTH0_ISSUER
+      AUTH0_CLIENT_ID: $AUTH0_CLIENT_ID
+      AUTH0_CLIENT_SECRET: $AUTH0_CLIENT_SECRET
+    restart: on-failure
+    ports:
+      - $SERVER_PORT:9312
+    expose:
+      - '9312'
+    volumes:
+      - public:/opt/app/public

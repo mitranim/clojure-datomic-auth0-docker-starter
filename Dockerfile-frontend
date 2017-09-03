@@ -1,0 +1,15 @@
+FROM node:alpine
+
+WORKDIR /opt/frontend
+
+ADD ["package.json", "yarn.lock", "./"]
+
+RUN yarn
+
+ADD src-js ./src-js
+ADD src-scss ./src-scss
+ADD *.js ./
+
+RUN yarn run front-build-prod
+
+CMD tail -f /dev/null

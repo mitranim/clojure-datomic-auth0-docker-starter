@@ -1,0 +1,33 @@
+{
+  "devPort": 9312,
+  "scripts": {
+    "app-start-dev": "lein ring server-headless",
+    "app-build": "UBERJAR_NAME=app.jar lein ring uberjar",
+    "app-start-jar": "java -jar target/uberjar/app.jar",
+    "repl": "lein ring :connect",
+    "front-start": "gulp",
+    "front-build": "gulp build",
+    "front-build-prod": "NODE_ENV=production gulp build"
+  },
+  "devDependencies": {
+    "babel-core": "6.26.0",
+    "babel-eslint": "7.2.3",
+    "babel-loader": "7.1.2",
+    "babel-plugin-transform-class-properties": "6.24.1",
+    "babel-preset-env": "1.6.0",
+    "browser-sync": "2.18.13",
+    "del": "3.0.0",
+    "eslint_d": "4.2.5",
+    "feather-icons": "3.2.2",
+    "gulp": "gulpjs/gulp#4.0",
+    "gulp-autoprefixer": "4.0.0",
+    "gulp-clean-css": "3.7.0",
+    "gulp-load-plugins": "1.5.0",
+    "gulp-sass": "3.1.0",
+    "gulp-util": "3.0.8",
+    "gulp-watch": "4.3.11",
+    "node-sass": "4.5.3",
+    "normalize.css": "7.0.0",
+    "webpack": "3.5.5"
+  }
+}

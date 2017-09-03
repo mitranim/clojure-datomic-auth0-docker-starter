@@ -1,0 +1,138 @@
+@import 'node_modules/normalize.css/normalize';
+
+*, ::before, ::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  font-family: inherit;
+  font-weight: inherit;
+  font-size: inherit;
+  text-transform: inherit;
+  line-height: 1;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-size: inherit;
+  // Override normalize.css
+  margin: 0;
+}
+
+[disabled] {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+img {
+  max-width: 100%;
+}
+
+/**
+ * :focus
+ */
+
+:focus {
+  outline: none;
+}
+
+// FF
+::-moz-focus-inner {
+  border: none;
+}
+
+/**
+ * button
+ */
+
+button {
+  cursor: pointer;
+  border: none;
+  color: inherit;
+  background-color: inherit;
+  &:focus {@extend :focus;}
+  &:active {@extend :focus;} // FF
+}
+
+[role=button] {
+  cursor: pointer;
+}
+
+/**
+ * inputs
+ */
+
+input, textarea {
+  border: none;
+  color: inherit;
+  background-color: inherit;
+}
+
+textarea {
+  resize: none;
+}
+
+::placeholder {
+  color: currentColor;
+  opacity: 0.5;
+}
+
+form, input, textarea, button, select, option {
+  text-decoration: inherit; // FF
+}
+
+/**
+ * hr
+ */
+
+hr {
+  margin: 0;
+  border: none;
+  border-top: 1px solid;
+}
+
+/**
+ * anchor
+ */
+
+a {
+  text-decoration: none;
+  // Screw default anchor colors! They always mess with themes. Let's decorate
+  // links manually.
+  color: inherit;
+}
+
+a[href] {
+  cursor: pointer;
+}
+
+/**
+ * Lists
+ */
+
+// Questionable
+ul, ol {
+  list-style-type: disc;
+  margin-left: 2rem;
+  ul, ol {
+    margin-left: 2rem;
+  }
+}
+
+/**
+ * monospace
+ */
+
+pre {
+  white-space: pre-wrap;
+}
+
+code, pre {
+  // Normalise monospace font size.
+  font-size: 14/16 * 1em;
+  // Prevent further reduction.
+  code, pre {
+    font-size: 1em;
+  }
+}

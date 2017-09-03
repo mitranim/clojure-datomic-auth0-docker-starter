@@ -1,0 +1,18 @@
+FROM clojure:lein-2.7.1-alpine
+
+ARG DATOMIC_VERSION
+ARG DATOMIC_CREDENTIALS
+
+WORKDIR /opt/datomic
+
+RUN apk add --no-cache unzip curl
+
+RUN curl -u $DATOMIC_CREDENTIALS -SL https://my.datomic.com/repo/com/datomic/datomic-pro/$DATOMIC_VERSION/datomic-pro-$DATOMIC_VERSION.zip -o /tmp/datomic.zip \
+  && unzip /tmp/datomic.zip -d . \
+  && rm /tmp/datomic.zip \
+  && mv datomic-pro-$DATOMIC_VERSION/* . \
+  && rmdir datomic-pro-$DATOMIC_VERSION
+
+ADD config/transactor.properties ./config/
+
+CMD bin/transactor config/transactor.properties
