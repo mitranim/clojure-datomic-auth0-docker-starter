@@ -1,5 +1,7 @@
 FROM node:alpine
 
+RUN apk add --no-cache rsync
+
 WORKDIR /opt/frontend
 
 ADD ["package.json", "yarn.lock", "./"]
@@ -12,4 +14,4 @@ ADD *.js ./
 
 RUN yarn run front-build-prod
 
-CMD tail -f /dev/null
+CMD rsync -r --delete public /opt/ && tail -f /dev/null
