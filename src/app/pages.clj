@@ -52,14 +52,14 @@
        [:a.nav-link {:href "/login"} "Login"])]]
    [:h1.padding-1.font-large title]])
 
-(defn site-layout [{title :title} & content]
+(defn common-layout [{title :title} & content]
   [:html
    (site-head [:title (or title "AppStarter")])
    (site-body (site-nav title) content)])
 
 (defn page-404 []
   (let [title "404 Page Not Found"]
-    (site-layout
+    (common-layout
       {:title title}
       [:div.col-start-center.gaps-1-v
        [:h1.font-large title]
@@ -67,7 +67,7 @@
 
 (defn page-500 []
   (let [title "500 Internal Server Error"]
-    (site-layout
+    (common-layout
       {:title title}
       [:div.col-start-center.gaps-1-v
        [:h1.font-large title]
@@ -75,7 +75,7 @@
        [:a.btn-text.busy-bg-primary {:href "/"} "Home"]])))
 
 (defn page-401 [title]
-  (site-layout
+  (common-layout
     {:title title}
     [:div.col-start-center.gaps-1-v
      [:h1.font-large "401 Unauthenticated"]
@@ -86,14 +86,14 @@
 
 (defn page-403-forgery [{uri :uri}]
   (let [title "403 Invalid Anti-Forgery Token"]
-    (site-layout
+    (common-layout
       {:title title}
       [:div.col-start-center.gaps-1-v
        [:h1.font-large title]
        [:a.btn-text.busy-bg-primary {:href uri} "Refresh to Retry"]])))
 
 (defn index []
-  (site-layout
+  (common-layout
     {:title "Index Page"}
     (if-let [user (:user *req*)]
       [:div "Welcome, " (get-user-name user) "!"]
@@ -108,7 +108,7 @@
 
 (defn posts-all []
   (let [posts (dat/get-all-posts @db)]
-    (site-layout
+    (common-layout
       {:title "Posts"}
       (if (empty? posts)
         [:div.col-start-center.gaps-1-v
@@ -125,7 +125,7 @@
   (let [post (dat/get-post @db id)
         author (:post/author post)
         user-id (get-in *req* [:user :db/id])]
-    (site-layout
+    (common-layout
       {:title (or (:post/title post) "Post")}
       (author-time-subtitle post author)
       [:article.fancy-typography (util/md-to-html (:post/body post))])))
@@ -165,7 +165,7 @@
 
 (defn profile []
   (if-let [user (:user *req*)]
-    (site-layout
+    (common-layout
       {:title "Profile"}
       [:div.col-start-stretch.gaps-1-v
        [:h3 "Welcome, user:"]
