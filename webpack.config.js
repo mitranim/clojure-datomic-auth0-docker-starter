@@ -28,11 +28,7 @@ module.exports = {
 
   plugins: [
     ...(!PROD ? [] : [
-      new webpack.optimize.UglifyJsPlugin({
-        mangle: true,
-        toplevel: true,
-        compress: {warnings: false},
-      }),
+      new webpack.optimize.UglifyJsPlugin(),
     ]),
   ],
 
