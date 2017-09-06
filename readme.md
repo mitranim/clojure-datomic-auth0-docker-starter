@@ -2,11 +2,11 @@
 
 This is a web server template that uses:
 
-  * Clojure as application language
-  * Datomic as database
-  * Auth0 for authentication
-  * Node for frontend build
-  * Docker for deployment
+  * [Clojure](https://clojure.org) as application language
+  * [Datomic](http://www.datomic.com) as database
+  * [Auth0](https://auth0.com) for authentication
+  * [Node](https://nodejs.org) for frontend build
+  * [Docker](https://www.docker.com) for deployment
 
 ## TOC
 
