@@ -1,6 +1,7 @@
 (ns app.pages
   (:require
     [clojure.pprint :refer [pprint] :rename {pprint ppr}]
+    [ring.util.anti-forgery :refer [anti-forgery-field]]
     [datomic.api :as d]
     [app.dat :as dat :refer [db get-user-name]]
     [app.util :as util :refer [*req* svg]]
@@ -143,6 +144,7 @@
             [:a.btn-text.busy-bg-primary.font-regular {:href "/login"} "Login Before Submitting"])])
        [:div.gaps-2-v
         [:form.gaps-2-v {:method "post" :action "/posts/create"}
+         (anti-forgery-field)
          [:div.input-container
           [:label.input-label "Title"]
           [:input.input

@@ -45,10 +45,12 @@
 
   (route/not-found "Not Found")))
 
+(defonce session-store (ring.middleware.session.memory/memory-store))
+
 (def app-defaults
   (-> site-defaults
-      ; Breaks on code reload
-      (assoc-in [:security :anti-forgery] nil)
+      (assoc-in [:security :anti-forgery]
+                {:error-handler #(to-html-coded 403 (pages/page-403-forgery %))})
       (assoc-in [:static :files] "public")))
 
 (def app (-> app-routes
