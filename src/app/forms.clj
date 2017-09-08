@@ -1,7 +1,7 @@
 (ns app.forms
   (:require
     [app.dat :as dat]
-    [app.util :as util :refer [non-empty-str? sanitize-input eprn]]
+    [app.util :as util :refer [non-empty-str? sanitize-input prn-err]]
     [app.pages :as pages]
     ))
 
@@ -24,10 +24,10 @@
        :body (pages/post-form {:post pending, :msg errs})}
       (try
         (let [post (dat/tx-dict! pending)]
-          {:status 302
+          {:status 303
            :headers {"Location" (str "/posts/view/" (:db/id post))}
            :flash {:success "Post created!"}})
         (catch Exception err
-          (eprn err)
+          (prn-err err)
           (pages/post-form {:post pending
                                :msg {:error util/err-unexpected}}))))))

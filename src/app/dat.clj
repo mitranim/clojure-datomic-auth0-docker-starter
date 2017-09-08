@@ -5,7 +5,7 @@
     [clojure.string :as string]
     [clojure.walk :refer [keywordize-keys]]
     [auth0-ring.jwt :refer [get-jwt-verifier verify-token]]
-    [app.util :as util :refer [eprn eprintln]]
+    [app.util :as util :refer [prn-err eprintln]]
     )
   (:import [clojure.lang IDeref]))
 
@@ -25,7 +25,7 @@
   (def conn
     (try (d/connect db-uri)
       (catch Exception err
-        (eprn err)
+        (prn-err err)
         (eprintln "Couldn't reach database at" db-uri)
         (eprintln "Database will be unavailable")
         (Thread/sleep 1)

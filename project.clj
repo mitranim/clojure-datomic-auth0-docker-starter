@@ -23,6 +23,8 @@
     [commons-codec "1.10"]
     [org.clojure/tools.nrepl "0.2.3"]
     [ring-server "0.5.0"]
+    ; Used by ring stacktrace middleware, and also by us
+    [clj-stacktrace "0.2.8"]
   ]
 
   ; Overrides for slimmer builds

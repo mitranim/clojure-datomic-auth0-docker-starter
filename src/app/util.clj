@@ -1,6 +1,7 @@
 (ns app.util
   (:require
     [ring.middleware.stacktrace :refer [wrap-stacktrace]]
+    [clj-stacktrace.repl :refer [pst-on]]
     [clojure.pprint :refer [pprint] :rename {pprint ppr}]
     [clojure.string :as string :refer [includes? replace-first]]
     [clojure.walk :refer [keywordize-keys]]
@@ -184,6 +185,9 @@ window.onfocus = function refreshOnFocus() {
 
 (defn eprintln [& args] (binding [*out* *err*] (apply println args)))
 
+; true = with color
+(defn prn-err [err] (pst-on *err* true err))
+
 (defn wrap-with-dynamic-req [handler]
   (fn with-dynamic-req [req] (binding [*req* req] (handler req))))
 
@@ -194,5 +198,5 @@ window.onfocus = function refreshOnFocus() {
   (fn handle-500 [request]
     (try (handler request)
       (catch Exception err
-        (eprn err)
+        (prn-err err)
         (to-html-coded 500 (page-500))))))
