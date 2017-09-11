@@ -8,6 +8,8 @@
     [hiccup.compiler :refer [render-html]]
     [hiccup.page :refer [doctype]]
     [autoclave.html :as ahtml]
+    [ring.middleware.session.store :refer [SessionStore]]
+    [expiring-map.core :as em]
     )
   (:import
     [org.commonmark.parser                  Parser]
@@ -96,7 +98,8 @@ window.onfocus = function refreshOnFocus() {
     (ahtml/policy :allow-elements ["hr"])))
 
 (defn sanitize-output [input]
-  (when input (string/trim (ahtml/sanitize permissive-html-policy input))))
+  (when (string? input)
+    (string/trim (ahtml/sanitize permissive-html-policy input))))
 
 (defn sanitize-input [input]
   (when-let [out (sanitize-output input)]
@@ -127,28 +130,29 @@ window.onfocus = function refreshOnFocus() {
     (->> input (.parse md-parser) (.render md-renderer) html-to-text)))
 
 ; No out-of-bounds exception
-(defn string-take [string length]
-  {:pre [(string? string)]}
-  (if (> (count string)) (subs string 0 length) string))
+(defn string-take [string length] {:pre [(string? string)]}
+  (if (> (count string) length) (subs string 0 length) string))
 
 (def ^:dynamic *req* nil)
 
 (defn add-truthy [acc [key value]] (if value (assoc acc key value) acc))
 
-(defn trim-dict [dict]
-  {:pre [(or (nil? dict) (map? dict))]}
+(defn trim-dict [dict] {:pre [(or (nil? dict) (map? dict))]}
   (reduce add-truthy nil dict))
 
 (defn vacate [value] (if (empty? value) nil value))
 
-(defn trim-args [& args] (vacate (filter identity args)))
+(defn compact [value] (when (sequential? value) (filter identity value)))
 
-(defn map-keys [fun dict]
-  {:pre [(or (nil? dict) (map? dict))]}
-  (when dict
-    (reduce (fn [acc [key value]] (assoc acc (fun key) value)) {} dict)))
+(defn trim-seq [value] (vacate (compact value)))
 
-(defn keywordize-params [req] (update-in req [:params] keywordize-keys))
+(defn trim-args [& args] (trim-seq args))
+
+(defn sort-by-items [coll-to-sort items-to-sort-by]
+  (distinct (concat (filter (set coll-to-sort) items-to-sort-by) coll-to-sort)))
+
+(defn assoc-if [target key value]
+  (if (and target value) (assoc target key value) target))
 
 (defn response? [value]
   (and (map? value)
@@ -162,7 +166,7 @@ window.onfocus = function refreshOnFocus() {
 (defn to-html-res [value]
   (-> value
       to-response
-      (update-in [:headers] merge {"Content-Type" "text/html"})
+      (update-in [:headers] assoc "Content-Type" "text/html")
       (update-in [:body] to-html)))
 
 (defn to-html-coded [code value] (assoc (to-html-res value) :status code))
@@ -179,8 +183,6 @@ window.onfocus = function refreshOnFocus() {
 
 (defn ppstr [value] (with-out-str (ppr value)))
 
-(def err-unexpected "Unexpected error occurred; please contact site administration")
-
 (defn eprn [& args] (binding [*out* *err*] (apply prn args)))
 
 (defn eprintln [& args] (binding [*out* *err*] (apply println args)))
@@ -188,10 +190,27 @@ window.onfocus = function refreshOnFocus() {
 ; true = with color
 (defn prn-err [err] (pst-on *err* true err))
 
+(defn flatten-messages [msg]
+  (cond
+    (sequential? msg)
+    (trim-seq (flatten (map flatten-messages msg)))
+
+    (sequential? (:error msg))
+    (for [submsg (flatten-messages (:error msg))] {:error submsg})
+
+    (sequential? (:success msg))
+    (for [submsg (flatten-messages (:success msg))] {:success submsg})
+
+    msg (list msg)
+
+    :else nil))
+
 (defn wrap-with-dynamic-req [handler]
   (fn with-dynamic-req [req] (binding [*req* req] (handler req))))
 
-(defn wrap-keyword-params [handler] (comp handler keywordize-params))
+(defn keywordize-params [req] (update-in req [:params] keywordize-keys))
+
+(defn wrap-keywordize-params [handler] (comp handler keywordize-params))
 
 (defn wrap-handle-500 [handler page-500]
   {:pre [(fn? page-500)]}
@@ -200,3 +219,44 @@ window.onfocus = function refreshOnFocus() {
       (catch Exception err
         (prn-err err)
         (to-html-coded 500 (page-500))))))
+
+(deftype ExpiringSessionStore [expiring-dict]
+  SessionStore
+  (read-session [_ key]
+    (get expiring-dict key))
+  (write-session [_ key data]
+    (let [key (str (or key (java.util.UUID/randomUUID)))]
+      (em/assoc! expiring-dict key data)
+      key))
+  (delete-session [_ key]
+    (em/dissoc! expiring-dict key)
+    nil))
+
+(defn expiring-session-store [& opts]
+  (new ExpiringSessionStore (apply em/expiring-map opts)))
+
+(defonce exp-store (em/expiring-map 10 {:time-unit :minutes
+                                        :expiration-policy :access}))
+
+(defn exp-push! [value]
+  (let [uuid (str (java.util.UUID/randomUUID))]
+    (em/assoc! exp-store uuid value)
+    uuid))
+
+(defn exp-pop! [key]
+  (when (contains? exp-store key)
+    (let [value (get exp-store key)]
+      (em/dissoc! exp-store key)
+      value)))
+
+(defn state-uri! [uri state] {:pre [(string? uri)]}
+  (str uri "?state-id=" (exp-push! state)))
+
+(defn state-location! [uri state] {"Location" (state-uri! uri state)})
+
+(defn restore-state [request]
+  (let [state-id (get-in request [:query-params "state-id"])
+        state (get exp-store state-id)]
+    (assoc request :state state)))
+
+(defn wrap-restore-state [handler] (comp handler restore-state))

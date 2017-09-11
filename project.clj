@@ -9,6 +9,7 @@
     [auth0-ring "0.4.3"]
     [org.clojure/tools.namespace "0.2.11"]
     [alxlit/autoclave "0.2.0"]
+    [expiring-map "0.1.8"]
     [com.atlassian.commonmark/commonmark                       "0.9.0"]
     [com.atlassian.commonmark/commonmark-ext-autolink          "0.9.0"]
     [com.atlassian.commonmark/commonmark-ext-heading-anchor    "0.9.0"]

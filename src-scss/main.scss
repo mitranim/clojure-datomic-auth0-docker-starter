@@ -32,6 +32,11 @@ svg.feather {
  * Misc
  */
 
+.stretch-to-viewport {
+  min-height: 100vh;
+  @extend .col-start-stretch;
+}
+
 .page-container {
   min-width: 320px;
   max-width: 800px;
@@ -58,6 +63,7 @@ svg.feather {
       margin-top: 1rem;
     }
     margin-bottom: 1rem;
+    text-align: justify;
   }
 
   hr {
@@ -156,6 +162,19 @@ svg.feather {
 .col-between-end     {@include flex-layout(column, space-between, flex-end);}
 .col-between-stretch {@include flex-layout(column, space-between, stretch);}
 
+.flex-1  {flex: 1}
+.flex-2  {flex: 2}
+.flex-3  {flex: 3}
+.flex-4  {flex: 4}
+.flex-5  {flex: 5}
+.flex-6  {flex: 6}
+.flex-7  {flex: 7}
+.flex-8  {flex: 8}
+.flex-9  {flex: 9}
+.flex-10 {flex: 10}
+.flex-11 {flex: 11}
+.flex-12 {flex: 12}
+
 .btn-text {
   @extend .row-start-center;
   @extend .text-ellipsis;
@@ -218,7 +237,7 @@ svg.feather {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  > {@extend .text-ellipsis;}
+  > * {@extend .text-ellipsis;}
 }
 
 .text-uppercase {
@@ -273,4 +292,15 @@ svg.feather {
     border-bottom: 1px dashed $color-gray;
   }
   @extend .transition;
+}
+
+.flag-svg {
+  display: inline-flex;
+  @extend .row-center-center;
+  width: 2em;
+  height: 2em;
+  svg {
+    width: 100%;
+    max-height: 100%;
+  }
 }

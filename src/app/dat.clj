@@ -5,7 +5,8 @@
     [clojure.string :as string]
     [clojure.walk :refer [keywordize-keys]]
     [auth0-ring.jwt :refer [get-jwt-verifier verify-token]]
-    [app.util :as util :refer [prn-err eprintln]]
+    [app.util :as util :refer [*req* eprintln prn-err assoc-if trim-dict trim-args non-empty-str?]]
+    [app.i18n :refer [xln]]
     )
   (:import [clojure.lang IDeref]))
 
@@ -40,8 +41,6 @@
 
 (defn tx! [tx-data] @(d/transact conn tx-data))
 
-(defn q [query & args] (apply d/q query @db args))
-
 (defn entity-to-dict [entity]
   (when entity (merge {:db/id (:db/id entity)} entity)))
 
@@ -50,8 +49,7 @@
 
 (defn pull-dict [db eid] (entity-to-dict (pull-entity db eid)))
 
-(defn tx-entity! [dict]
-  {:pre [(map? dict)]}
+(defn tx-entity! [dict] {:pre [(map? dict)]}
   (if (:db/id dict)
     (do (tx! [dict]) (pull-entity @db (:db/id dict)))
     (let [tempid ""
@@ -66,7 +64,8 @@
   [{:db/ident       :user/id
     :db/valueType   :db.type/string
     :db/cardinality :db.cardinality/one
-    :db/unique      :db.unique/identity}
+    :db/unique      :db.unique/identity
+    :db/doc         "user_id from Auth0"}
    {:db/ident       :user/name
     :db/valueType   :db.type/string
     :db/cardinality :db.cardinality/one}
@@ -105,66 +104,47 @@
 
 
 ; https://github.com/Datomic/day-of-datomic/blob/master/tutorial/time-rules.clj
-(def time-rules
-  '[[(entity-at [?e] ?tx ?t ?inst)
-     [?e _ _ ?tx]
-     [(datomic.api/tx->t ?tx) ?t]
-     [?tx :db/txInstant ?inst]]
-    [(touched-at [?e] ?inst)
+(def rules
+  '[[(entity-at [?e] ?inst)
      [?e _ _ ?tx]
      [?tx :db/txInstant ?inst]]
-    [(value-at [?e] ?tx ?t ?inst)
-     [_ _ ?e ?tx]
-     [(datomic.api/tx->t ?tx) ?t]
-     [?tx :db/txInstant ?inst]]
-    [(entities-with [?log ?e] ?es)
-     [?e _ _ ?tx]
-     [(tx-data ?log ?tx) [[?es]]]]])
+    ])
 
 
-(def all-posts-q
-  '[:find (pull ?e [* {:post/author [:db/id :user/name]}]) (min ?inst)
-    :in $ %
-    :where
-    [?e :post/title]
-    (touched-at ?e ?inst)])
-
-
-(def user-posts-q
-  '[:find (pull ?e [* {:post/author [:db/id :user/name]}]) (min ?inst)
-    :in $ % ?user
-    :where
-    [?e :post/title]
-    [?e :post/author ?user]
-    (touched-at ?e ?inst)])
+(def post-inst-q
+  '[:find (min ?inst) .
+    :in $h % ?e
+    :where ($h entity-at ?e ?inst)])
 
 
 (def post-q
-  '[:find [(pull ?e [* {:post/author [:db/id :user/name]}]) (min ?inst)]
-    :in $ % ?e
+  '[:find (pull ?e [* {:post/author [:db/id :user/name]}]) .
+    :in $ ?e
+    :where [?e :post/title]])
+
+
+(defn q-post-inst [db id]
+  (d/q post-inst-q (d/history db) rules id))
+
+
+(defn q-post [db id]
+  (when-let [post (d/q post-q db id)]
+    (assoc-if post :inst (q-post-inst db id))))
+
+
+(defn q-posts-by [query db & args]
+  (->> (apply d/q query db args)
+       (map #(assoc-if % :inst (q-post-inst db (:db/id %))))
+       (sort-by :db/id)
+       (sort-by :inst)
+       reverse))
+
+
+(def all-posts-q
+  '[:find [(pull ?e [* {:post/author [:db/id :user/name]}]) ...]
     :where
-    (touched-at ?e ?inst)])
+    [?e :post/title]])
 
-
-(defn assoc-created-at [[dict inst]] (assoc dict :created-at inst))
-
-
-(defn get-all-posts [db]
-  (->> (d/q all-posts-q db time-rules)
-       (map assoc-created-at)
-       (sort-by :inst)
-       reverse))
-
-
-(defn get-user-posts [db user-id]
-  (->> (d/q user-posts-q db time-rules user-id)
-       (map assoc-created-at)
-       (sort-by :inst)
-       reverse))
-
-
-(defn get-post [db id]
-  (assoc-created-at (d/q post-q db time-rules id)))
 
 
 (def auth0-config
@@ -181,7 +161,7 @@
    :logout-redirect   "/"})
 
 (defn jwt-user-to-user-entity [user]
-  (util/trim-dict
+  (trim-dict
     {:user/id             (:sub user)
      :user/email          (:email user)
      :user/email-verified (:email_verified user)
@@ -196,7 +176,7 @@
 (def jwt-verifier (get-jwt-verifier auth0-config))
 
 (defn decode-jwt-payload [id-token]
-  (util/trim-dict (keywordize-keys (into {} (verify-token jwt-verifier id-token)))))
+  (trim-dict (keywordize-keys (into {} (verify-token jwt-verifier id-token)))))
 
 (def decode-user-from-jwt (comp jwt-user-to-user-entity decode-jwt-payload))
 
@@ -211,3 +191,29 @@
 (defn rewrite-user [req] (update-in req [:user] jwt-user-to-db-user))
 
 (defn wrap-rewrite-user [handler] (comp handler rewrite-user))
+
+
+(defn post-errors [{title :post/title body :post/body}]
+  (trim-args
+    (when-not (non-empty-str? title) (xln :required-post-title))
+    (when-not (non-empty-str? body)  (xln :required-post-body))))
+
+(defn post-upsert [proposed]
+  (let [existing  (and (:db/id proposed) (d/q post-q @db (:db/id proposed)))
+        user-id   (:db/id (:user *req*))
+        author-id (:db/id (:post/author existing))]
+    (cond (not user-id)
+          {:error (xln :required-author) :status 401}
+
+          (and existing (not= user-id author-id))
+          {:error (xln :update-only-own-posts) :status 403}
+
+          (post-errors proposed)
+          {:error (post-errors proposed) :status 400}
+
+          :else
+          (try
+            {:success (tx-dict! (assoc proposed :post/author user-id))}
+            (catch Exception err
+              (prn-err err)
+              {:error (xln :err-unexpected) :status 500})))))
